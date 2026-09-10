@@ -1,0 +1,28 @@
+pipeline{
+    agent any
+    stages{
+        stage("git clone"){
+            steps{
+                git branch: 'Sakthi' ,
+                    credentialsId :'Sakthi-practice',
+                        url:'https://github.com/Sakthi5577/SakthiRTN-Timbers.git'
+            }
+        }
+        stage("instaling dependencies"){
+            steps{
+                sh 'npm install'
+                sh ' npm run build'
+            }
+        }
+        stage("deploying into cloud"){
+            steps{
+                sh 'aws s3 sync dist/ s3://mybucket-2026-22 --delete'
+            }
+        }
+        stage("cloudfront"){
+            steps{
+                sh 'aws cloudfront create-invalidation --distribution-id EUDNBUZI2J7BM --paths "/*"'
+            }
+        }
+    }
+}
