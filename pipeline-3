@@ -1,0 +1,37 @@
+pipeline {
+    agent any
+    environment{
+        AWS_DEFAULT_REGION ='us-east-2'
+        S3_BUCKET = 'viki-k0526402-testing-bucket'
+        DISTRIBUTION_ID ='EFZGYPWODHZVD'
+    }
+    stages{
+        stage("cloning stage"){
+            steps{
+                git branch : 'vignesh',
+                    credentialsId : 'cred-id-loggingend',
+                        url: 'https://github.com/Anish-RS/landing-page.git'
+            }
+        }
+        stage("npm install"){
+            steps{
+                sh 'npm install'
+            }
+        }
+        stage("npm build and run"){
+            steps{
+                sh 'npm run build'
+            }
+        }
+        stage("uploading to s3"){
+            steps{
+                sh 'aws s3 sync dist/ s3://$S3_BUCKET --delete'
+            }
+        }
+        stage("contecting to cloudfront"){
+            steps{
+                sh 'aws cloudfront create-invalidation --distribution-id $DISTRIBUTION_ID --path "/*"'
+            }
+        }
+    }
+}
